@@ -32,7 +32,7 @@
             {
                 throw new ArgumentException("Room exists");
             }
-           
+
             var room = new Room(roomId);
             this.roomsById.Add(roomId, room);
             this.allRooms.Add(room);
@@ -75,7 +75,7 @@
             }
 
             var roomTobeRemoved = this.roomsById[roomId];
-            
+
             foreach (var team in roomTobeRemoved.BunniesByTeam)
             {
                 if (team != null)
@@ -89,7 +89,7 @@
                     }
                 }
             }
-            
+
             this.allRooms.Remove(roomTobeRemoved);
             this.roomsById.Remove(roomId);
             this.RoomCount--;
@@ -105,34 +105,23 @@
             var bunny = this.bunniesByName[bunnyName];
             var currentRoom = this.roomsById[bunny.RoomId];
 
+            var nextIndex = 0;
             var currentRoomIndex = this.allRooms.IndexOf(currentRoom);
-            if (currentRoomIndex >= this.RoomCount - 1)
+            if (currentRoomIndex < this.RoomCount - 1)
             {
-                var nextRoom = this.allRooms[0];
-                currentRoom.BunniesByTeam[bunny.Team].Remove(bunny);
-
-                if (nextRoom.BunniesByTeam[bunny.Team] == null)
-                {
-                    nextRoom.BunniesByTeam[bunny.Team] = new OrderedSet<Bunny>();
-                }
-
-                nextRoom.BunniesByTeam[bunny.Team].Add(bunny);
-                bunny.RoomId = nextRoom.Id;
+                nextIndex = currentRoomIndex + 1;
             }
-            else
+
+            var nextRoom = this.allRooms[nextIndex];
+            currentRoom.BunniesByTeam[bunny.Team].Remove(bunny);
+
+            if (nextRoom.BunniesByTeam[bunny.Team] == null)
             {
-                var nextRoomIndex = currentRoomIndex + 1;
-                var nextRoom = this.allRooms[nextRoomIndex];
-                currentRoom.BunniesByTeam[bunny.Team].Remove(bunny);
-                
-                if (nextRoom.BunniesByTeam[bunny.Team] == null)
-                {
-                    nextRoom.BunniesByTeam[bunny.Team] = new OrderedSet<Bunny>();
-                }
-
-                nextRoom.BunniesByTeam[bunny.Team].Add(bunny);
-                bunny.RoomId = nextRoom.Id;
+                nextRoom.BunniesByTeam[bunny.Team] = new OrderedSet<Bunny>();
             }
+
+            nextRoom.BunniesByTeam[bunny.Team].Add(bunny);
+            bunny.RoomId = nextRoom.Id;
         }
 
         public void Previous(string bunnyName)
@@ -145,31 +134,21 @@
             var bunny = this.bunniesByName[bunnyName];
             var currentRoom = this.roomsById[bunny.RoomId];
             var currentRoomIndex = this.allRooms.IndexOf(currentRoom);
-            if (currentRoomIndex == 0)
+            var nextIndex = this.RoomCount - 1;
+            if (currentRoomIndex != 0)
             {
-                var prevRoom = this.allRooms[this.RoomCount - 1];
-                currentRoom.BunniesByTeam[bunny.Team].Remove(bunny);
-                if (prevRoom.BunniesByTeam[bunny.Team] == null)
-                {
-                    prevRoom.BunniesByTeam[bunny.Team] = new OrderedSet<Bunny>();
-                }
-
-                prevRoom.BunniesByTeam[bunny.Team].Add(bunny);
-                bunny.RoomId = prevRoom.Id;
+                nextIndex = currentRoomIndex - 1;
             }
-            else
+
+            var prevRoom = this.allRooms[nextIndex];
+            currentRoom.BunniesByTeam[bunny.Team].Remove(bunny);
+            if (prevRoom.BunniesByTeam[bunny.Team] == null)
             {
-                var prevRoomIndex = currentRoomIndex - 1;
-                var prevRoom = this.allRooms[prevRoomIndex];
-                currentRoom.BunniesByTeam[bunny.Team].Remove(bunny);
-                if (prevRoom.BunniesByTeam[bunny.Team] == null)
-                {
-                    prevRoom.BunniesByTeam[bunny.Team] = new OrderedSet<Bunny>();
-                }
-
-                prevRoom.BunniesByTeam[bunny.Team].Add(bunny);
-                bunny.RoomId = prevRoom.Id;
+                prevRoom.BunniesByTeam[bunny.Team] = new OrderedSet<Bunny>();
             }
+
+            prevRoom.BunniesByTeam[bunny.Team].Add(bunny);
+            bunny.RoomId = prevRoom.Id;
         }
 
         public void Detonate(string bunnyName)
@@ -219,6 +198,7 @@
         public IEnumerable<Bunny> ListBunniesBySuffix(string suffix)
         {
             var reSuffix = new string(suffix.Reverse().ToArray());
+
             return this.suffixBunnies.Range(reSuffix, true, reSuffix + char.MaxValue, true).Values;
         }
     }
